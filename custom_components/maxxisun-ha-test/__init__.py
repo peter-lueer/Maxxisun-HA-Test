@@ -4,7 +4,11 @@ from .const import DOMAIN
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = {}
+    hass.data[DOMAIN][entry.entry_id] = {
+        "username": entry.data.get("username"),
+        "password": entry.data.get("password"),
+        "token": entry.data.get("token")
+    }
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor", "button", "sensor_int"])
     return True
 

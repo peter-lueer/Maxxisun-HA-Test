@@ -1,10 +1,10 @@
 {
-  "title": "REST Example",
+  "title": "Maxxisun HA-Test",
   "config": {
     "step": {
       "user": {
-        "title": "REST Example Setup",
-        "description": "Diese Integration ruft Daten von einer REST-API ab und zeigt sie als Sensoren an."
+        "title": "Maxxisun HA Integration",
+        "description": "Diese Integration ruft Daten von der Maxxisun-API ab und zeigt sie als Sensoren an."
       }
     }
   }
