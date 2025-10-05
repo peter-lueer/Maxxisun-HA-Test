@@ -5,8 +5,8 @@ import aiohttp
 from .const import DOMAIN, API_BASE_URL
 
 DATA_SCHEMA = vol.Schema({
-    vol.Required("username"): str,
-    vol.Required("password"): str,
+    vol.Required("email"): str,
+    vol.Required("ccu"): str,
 })
 
 class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -16,10 +16,13 @@ class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             session = async_get_clientsession(self.hass)
             login_url = f"{API_BASE_URL}/api/authentication/log-in"
+            headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0', 'Accept':'application/json, text/plain, */*', 'Accept-Encoding': 'gzip, deflate, br, zstd', 'Content-Type': 'application/json'}
+
             try:
                 async with session.post(
                     login_url,
-                    json={"username": user_input["username"], "password": user_input["password"]}
+                    json={"email": user_input["email"], "ccu": user_input["ccu"]},
+                    headers=headers
                 ) as resp:
                     if resp.status != 200:
                         return self.async_show_form(
@@ -38,9 +41,9 @@ class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except aiohttp.ClientError:
                 return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors={"base": "cannot_connect"})
 
-            return self.async_create_entry(title="REST JWT Example", data={
-                "username": user_input["username"],
-                "password": user_input["password"],
+            return self.async_create_entry(title="REST JWT Maxxisun", data={
+                "email": user_input["email"],
+                "ccu": user_input["ccu"],
                 "token": token
             })
 
