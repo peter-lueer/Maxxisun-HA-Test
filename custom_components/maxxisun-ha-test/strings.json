@@ -1,0 +1,11 @@
+{
+  "title": "REST Example",
+  "config": {
+    "step": {
+      "user": {
+        "title": "REST Example Setup",
+        "description": "Diese Integration ruft Daten von einer REST-API ab und zeigt sie als Sensoren an."
+      }
+    }
+  }
+}
