@@ -3,8 +3,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "Maxxisun HA Integration",
-        "description": "Diese Integration ruft Daten von der Maxxisun-API ab und zeigt sie als Sensoren an."
+        "data": {
+          "address": "Device"
+        },
+        "description": "Select your CCU"
       }
     }
   }

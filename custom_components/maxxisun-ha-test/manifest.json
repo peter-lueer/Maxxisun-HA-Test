@@ -1,8 +1,8 @@
 {
   "domain": "Maxxisun_HA-Test",
-  "name": "Maxxisun HA-Test Integration",
-  "version": "0.0.1",
-  "integration_type": "hub",
+  "name": "Maxxisun HA-Test",
+  "version": "0.0.3",
+  "integration_type": "device",
   "config_flow": true,
   "documentation": "https://github.com/peter-lueer/Maxxisun-HA-Test",
   "requirements": [],
