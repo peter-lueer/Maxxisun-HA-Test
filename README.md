@@ -8,6 +8,3 @@
 
 ---
 
-## Lizenz
-
-Public Domain – frei kopierbar, anpassbar und verbreitbar.
