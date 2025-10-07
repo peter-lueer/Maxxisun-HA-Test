@@ -44,11 +44,14 @@ class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except aiohttp.ClientError:
                 return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA, errors={"base": "cannot_connect"})
 
-            return self.async_create_entry(title=f"{user_input["ccu"]}", data={
-                "email": user_input["email"],
-                "ccu": user_input["ccu"],
-                "API_POLL_INTERVAL": user_input["API_POLL_INTERVAL"],
-                "token": token
-            })
+            return self.async_create_entry(
+                title=f"{user_input['ccu']}",
+                data={
+                    "email": user_input["email"],
+                    "ccu": user_input["ccu"],
+                    "API_POLL_INTERVAL": user_input["API_POLL_INTERVAL"],
+                    "token": token
+                }
+            )
 
         return self.async_show_form(step_id="user", data_schema=DATA_SCHEMA)
