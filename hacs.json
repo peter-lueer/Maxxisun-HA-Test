@@ -1,6 +1,6 @@
 {
   "name": "Maxxisun HA-Test",
   "content_in_root": false,
-  "domains": ["Maxxisun_HA-Test"],
+  "domains": ["Maxxisun-HA-Test"],
   "homeassistant": "2025.9.0"
 }

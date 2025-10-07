@@ -7,7 +7,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN][entry.entry_id] = {
         "email": entry.data.get("email"),
         "ccu": entry.data.get("ccu"),
-        "token": entry.data.get("token")
+        "token": entry.data.get("token"),
+        "API_POLL_INTERVAL": entry.data.get("API_POLL_INTERVAL", 15),
     }
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
     return True

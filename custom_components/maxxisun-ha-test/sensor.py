@@ -1,30 +1,47 @@
+import logging
+import aiohttp
+import asyncio
+from datetime import timedelta, datetime
+
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity import DeviceInfo
-from datetime import timedelta
-from datetime import datetime
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
+
 from .const import DOMAIN, API_BASE_URL, SENSOR_MAP
 
-SCAN_INTERVAL = timedelta(seconds=15)
+_LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up sensors from config entry."""
-    auth_data = hass.data[DOMAIN][entry.entry_id]
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
+    """Set up sensors from config entry using DataUpdateCoordinator."""
+    data = hass.data[DOMAIN][entry.entry_id]
     session = async_get_clientsession(hass)
+    api_interval = data.get("API_POLL_INTERVAL", 15)
 
-    coordinator = DeviceCoordinator(hass, session, auth_data)
-    await coordinator.async_refresh()  # ersten Abruf machen
+    coordinator = DeviceCoordinator(
+        hass=hass,
+        session=session,
+        token=data["token"],
+        api_poll_interval=api_interval,
+    )
 
-    device_id = coordinator.data.get("deviceId", "unknown")
+    await coordinator.async_config_entry_first_refresh()
 
+    device_id = coordinator.data.get("deviceId", "unknown") if coordinator.data else "unknown"
     entities = []
 
     # einfache Werte
-    for key, (name, unit, icon, forceInt) in SENSOR_MAP.items():
-        entities.append(DeviceValueSensor(coordinator, key, name, unit, device_id, icon, forceInt))
+    for key, (name, unit, icon, force_int) in SENSOR_MAP.items():
+        entities.append(DeviceValueSensor(coordinator, key, name, unit, device_id, icon, force_int))
 
     # converter array
-    for i, _ in enumerate(coordinator.data.get("convertersInfo", []), start=1):
+    for i, _ in enumerate(coordinator.data.get("convertersInfo", []) if coordinator.data else [], start=1):
         entities.append(
             DeviceArraySensor(
                 coordinator,
@@ -38,7 +55,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         )
 
     # battery array
-    for i, _ in enumerate(coordinator.data.get("batteriesInfo", []), start=1):
+    for i, _ in enumerate(coordinator.data.get("batteriesInfo", []) if coordinator.data else [], start=1):
         entities.append(
             DeviceArraySensor(
                 coordinator,
@@ -55,23 +72,37 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(entities, True)
 
 
-class DeviceCoordinator:
-    """Kümmert sich um API-Aufrufe und cached die Daten."""
+class DeviceCoordinator(DataUpdateCoordinator):
+    """Koordiniert periodisches Abrufen der API-Daten (zentrales Polling)."""
 
-    def __init__(self, hass, session, auth_data):
-        self.hass = hass
+    def __init__(self, hass, session, token, api_poll_interval: int):
         self._session = session
-        self._token = auth_data["token"]
-        self.data = None
+        self._token = token
 
-    async def async_refresh(self):
-        headers = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0', 'Accept':'application/json, text/plain, */*',"Authorization": f"Bearer {self._token}"}
+        super().__init__(
+            hass,
+            _LOGGER,
+            name="Maxxisun Device Coordinator",
+            update_interval=timedelta(seconds=api_poll_interval),
+        )
+
+    async def _async_update_data(self):
+        """Ruft periodisch Daten von der REST-API ab."""
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
+            'Accept': 'application/json, text/plain, */*',
+            "Authorization": f"Bearer {self._token}",
+        }
         url = f"{API_BASE_URL}/api/device/last"
 
-
-        async with self._session.get(url, headers=headers) as resp:
-            self.data = await resp.json()
-            return self.data
+        try:
+            async with self._session.get(url, headers=headers) as resp:
+                if resp.status not in (200, 202):
+                    raise UpdateFailed(f"HTTP {resp.status}")
+                data = await resp.json()
+                return data
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            raise UpdateFailed(f"API request error: {err}") from err
 
 
 class BaseDeviceSensor(SensorEntity):
@@ -79,17 +110,12 @@ class BaseDeviceSensor(SensorEntity):
 
     def __init__(self, coordinator, name, unique_id, device_id, unit=None, icon=None):
         self.coordinator = coordinator
-        self._attr_name = f"{name}"
+        self._attr_name = name
         self._attr_unique_id = f"{device_id}_{unique_id}"
         self._attr_native_unit_of_measurement = unit
         self._attr_icon = icon
         self._device_id = device_id
-        
         self._state = None
-
-    @property
-    def native_value(self):
-        return self._state
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -100,35 +126,39 @@ class BaseDeviceSensor(SensorEntity):
             model="Custom Device",
         )
 
+    async def async_update(self):
+        """Erzwingt manuelles Update (nur bei Serviceaufruf nötig)."""
+        await self.coordinator.async_request_refresh()
+
 
 class DeviceValueSensor(BaseDeviceSensor):
     """Sensor für einfache Werte."""
 
     def __init__(self, coordinator, key, name, unit, device_id, icon=None, force_int=False):
-        super().__init__(coordinator, name, f"{key}", device_id, unit, icon)
+        super().__init__(coordinator, name, key, device_id, unit, icon)
         self._key = key
         self._force_int = force_int
-        self._last_update = None
+
+    @property
+    def native_value(self):
+        data = self.coordinator.data
+        if not data:
+            return None
+        value = data.get(self._key)
+        if value is not None and self._force_int:
+            try:
+                value = int(round(float(value)))
+            except (ValueError, TypeError):
+                value = None
+        return value
 
     @property
     def extra_state_attributes(self):
-        if self._last_update:
-            return {"last_update": self._last_update.isoformat()}
+        data = self.coordinator.data or {}
+        ts = data.get("date")
+        if ts:
+            return {"last_update": datetime.fromtimestamp(ts / 1000).isoformat()}
         return {}
-
-    async def async_update(self):
-        data = await self.coordinator.async_refresh()
-        if data:
-            value = data.get(self._key)
-            if value is not None and self._force_int:
-                try:
-                    value = int(round(float(value)))
-                except (ValueError, TypeError):
-                    value = None
-            self._state = value
-            ts = data.get("date")
-            if ts:
-                self._last_update = datetime.fromtimestamp(ts / 1000)
 
 
 class DeviceArraySensor(BaseDeviceSensor):
@@ -139,21 +169,21 @@ class DeviceArraySensor(BaseDeviceSensor):
         self._array_key = array_key
         self._index = index
         self._value_key = value_key
-        self._attr_icon = icon
-        self._last_update = None
+
+    @property
+    def native_value(self):
+        data = self.coordinator.data
+        if not data:
+            return None
+        array = data.get(self._array_key, [])
+        if len(array) > self._index:
+            return array[self._index].get(self._value_key)
+        return None
 
     @property
     def extra_state_attributes(self):
-        if self._last_update:
-            return {"last_update": self._last_update.isoformat()}
+        data = self.coordinator.data or {}
+        ts = data.get("date")
+        if ts:
+            return {"last_update": datetime.fromtimestamp(ts / 1000).isoformat()}
         return {}
-
-    async def async_update(self):
-        data = await self.coordinator.async_refresh()
-        if data:
-            array = data.get(self._array_key, [])
-            if len(array) > self._index:
-                self._state = array[self._index].get(self._value_key)
-            ts = data.get("date")
-            if ts:
-                self._last_update = datetime.fromtimestamp(ts / 1000)

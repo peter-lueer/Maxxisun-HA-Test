@@ -2,11 +2,14 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import aiohttp
-from .const import DOMAIN, API_BASE_URL
+from .const import DOMAIN, API_BASE_URL, DEFAULT_POLL_INTERVAL
 
 DATA_SCHEMA = vol.Schema({
     vol.Required("email"): str,
     vol.Required("ccu"): str,
+    vol.Required("API_POLL_INTERVAL", default=DEFAULT_POLL_INTERVAL): vol.All(
+            vol.Coerce(int), vol.Range(min=5, max=600)
+        ),
 })
 
 class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -24,7 +27,7 @@ class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data='{"email":"' + user_input["email"] + '","ccu":"' + user_input["ccu"] + '"}',
                     headers=headers
                 ) as resp:
-                    if resp.status != 200 | resp.status != 202:
+                    if resp.status not in (200, 202):
                         return self.async_show_form(
                             step_id="user",
                             data_schema=DATA_SCHEMA,
@@ -44,6 +47,7 @@ class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title=f"{user_input["ccu"]}", data={
                 "email": user_input["email"],
                 "ccu": user_input["ccu"],
+                "API_POLL_INTERVAL": user_input["API_POLL_INTERVAL"],
                 "token": token
             })
 
