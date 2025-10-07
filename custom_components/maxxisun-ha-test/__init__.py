@@ -1,6 +1,6 @@
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_POLL_INTERVAL
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data.setdefault(DOMAIN, {})
@@ -8,7 +8,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         "email": entry.data.get("email"),
         "ccu": entry.data.get("ccu"),
         "token": entry.data.get("token"),
-        "API_POLL_INTERVAL": entry.data.get("API_POLL_INTERVAL", 15),
+        "API_POLL_INTERVAL": entry.data.get("API_POLL_INTERVAL", DEFAULT_POLL_INTERVAL),
     }
     await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
     return True

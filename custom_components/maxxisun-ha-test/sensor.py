@@ -22,7 +22,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     """Set up sensors from config entry using DataUpdateCoordinator."""
     data = hass.data[DOMAIN][entry.entry_id]
     session = async_get_clientsession(hass)
-    api_interval = data.get("API_POLL_INTERVAL", 15)
+    api_interval = data.get("API_POLL_INTERVAL")
 
     coordinator = DeviceCoordinator(
         hass=hass,
