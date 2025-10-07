@@ -123,7 +123,7 @@ class BaseDeviceSensor(SensorEntity):
             identifiers={(DOMAIN, self._device_id)},
             name=f"{self._device_id}",
             manufacturer="Maxxisun",
-            model="Custom Device",
+            model="Rest API",
         )
 
     async def async_update(self):
