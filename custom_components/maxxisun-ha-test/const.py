@@ -1,6 +1,6 @@
 DOMAIN = "Maxxisun-HA-Test"
 API_BASE_URL = "https://maxxisun.app:3000"
-DEFAULT_POLL_INTERVAL: int = 20
+DEFAULT_POLL_INTERVAL: int = 30
 SENSOR_MAP = {
     "SOC": ("State of Charge", "%", "mdi:battery", False),
     "wifiStrength": ("WiFi Signal", "dBm", "mdi:wifi", False),
