@@ -24,8 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     session = async_get_clientsession(hass)
     api_interval = int(data.get("API_POLL_INTERVAL"))
 
-    _LOGGER.warning("API_POLL_INTERVAL aus hass.data = %s", data.get("API_POLL_INTERVAL"))
-    _LOGGER.warning("Coordinator wird initialisiert mit Intervall %s Sekunden", api_interval)
+    _LOGGER.debug("Coordinator wird initialisiert mit Intervall %s Sekunden", api_interval)
 
     coordinator = DeviceCoordinator(
         hass=hass,
@@ -82,7 +81,7 @@ class DeviceCoordinator(DataUpdateCoordinator):
         self._session = session
         self._token = token
 
-        _LOGGER.warning("DataUpdateCoordinator initialisiert: api_poll_interval=%s", api_poll_interval)
+        _LOGGER.debug("DataUpdateCoordinator initialisiert: api_poll_interval=%s", api_poll_interval)
 
         super().__init__(
             hass,
