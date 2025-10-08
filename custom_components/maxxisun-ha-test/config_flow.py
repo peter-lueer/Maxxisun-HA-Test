@@ -8,7 +8,7 @@ DATA_SCHEMA = vol.Schema({
     vol.Required("email"): str,
     vol.Required("ccu"): str,
     vol.Required("API_POLL_INTERVAL", default=DEFAULT_POLL_INTERVAL): vol.All(
-            vol.Coerce(int), vol.Range(min=5, max=600)
+            vol.Coerce(int), vol.Range(min=1, max=600)
         ),
 })
 
