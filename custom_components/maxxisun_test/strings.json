@@ -1,10 +1,12 @@
 {
-  "title": "Maxxisun HA-Test",
+  "title": "Maxxisun Test",
   "config": {
     "step": {
       "user": {
         "data": {
-          "address": "Device"
+          "email": "E-Mail",
+          "ccu": "CCU",
+          "API_POLL_INTERVAL": "Interval"
         },
         "description": "Select your CCU"
       }

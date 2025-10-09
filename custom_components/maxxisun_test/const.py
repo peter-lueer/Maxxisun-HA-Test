@@ -1,4 +1,4 @@
-DOMAIN = "Maxxisun-HA-Test"
+DOMAIN = "Maxxisun_Test"
 API_BASE_URL = "https://maxxisun.app:3000"
 DEFAULT_POLL_INTERVAL: int = 30
 SENSOR_MAP = {
