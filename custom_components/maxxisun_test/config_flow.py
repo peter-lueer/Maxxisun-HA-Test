@@ -12,7 +12,7 @@ DATA_SCHEMA = vol.Schema({
         ),
 })
 
-class RestExampleConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class RestConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
