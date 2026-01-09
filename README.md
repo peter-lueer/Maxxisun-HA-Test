@@ -4,7 +4,7 @@
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 [![hacs][hacsbadge]][hacs]
-
+<img src="https://img.shields.io/badge/dynamic/json?color=41BDF5&logo=home-assistant&label=integration%20usage&suffix=%20installs&cacheSeconds=15600&url=https://analytics.home-assistant.io/custom_integrations.json&query=$.maxxisun_test.total">
 
 A custom integration for [Maxxisun-CCUs]. This implementation focuses on reading the Maxxisun-API data and providing entities.
 
