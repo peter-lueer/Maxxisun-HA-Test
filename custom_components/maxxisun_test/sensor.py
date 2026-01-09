@@ -124,6 +124,8 @@ class BaseDeviceSensor(SensorEntity):
         self.coordinator = coordinator
         self._attr_name = name
         self._attr_unique_id = f"{device_id}_{unique_id}"
+        self._attr_has_entity_name = True
+        self._attr_suggested_object_id = f"{device_id}_{unique_id}".lower()
         self._attr_native_unit_of_measurement = unit
         self._attr_icon = icon
         self._device_id = device_id
@@ -135,7 +137,7 @@ class BaseDeviceSensor(SensorEntity):
             identifiers={(DOMAIN, self._device_id)},
             name=f"{self._device_id}",
             manufacturer="Maxxisun",
-            model="Rest API",
+            model=f"{self._device_id}".upper(),
         )
 
     async def async_update(self):
