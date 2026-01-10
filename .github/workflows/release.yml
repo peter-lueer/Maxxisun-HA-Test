@@ -21,7 +21,7 @@ jobs:
       - name: Validate manifest.json version
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          MANIFEST_PATH=$(find . -path "custom_components/*/manifest.json" | head -n 1)
+          MANIFEST_PATH=$(find . -path "*/custom_components/*/manifest.json" | head -n 1)
 
           if [ ! -f "$MANIFEST_PATH" ]; then
             echo "$MANIFEST_PATH not found"
