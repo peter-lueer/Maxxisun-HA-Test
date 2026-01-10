@@ -1,0 +1,126 @@
+name: Release on Tag
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate manifest.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+
+          if [ ! -f manifest.json ]; then
+            echo "manifest.json not found"
+            exit 1
+          fi
+
+          MANIFEST_VERSION=$(jq -r '.version' manifest.json)
+
+          if [ "$MANIFEST_VERSION" = "null" ] || [ -z "$MANIFEST_VERSION" ]; then
+            echo "Version field missing in manifest.json"
+            exit 1
+          fi
+
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "Version mismatch:"
+            echo "Tag:       $TAG_VERSION"
+            echo "Manifest:  $MANIFEST_VERSION"
+            exit 1
+          fi
+
+          echo "Version OK: $TAG_VERSION"
+
+      - name: Generate changelog from conventional commits
+        id: changelog
+        run: |
+          LAST_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+
+          if [ -z "$LAST_TAG" ]; then
+            RANGE=""
+          else
+            RANGE="$LAST_TAG..HEAD"
+          fi
+
+          FEATURES=$(git log $RANGE --pretty=format:"%s" | grep -iE '^feat(\(.+\))?:' || true)
+          FIXES=$(git log $RANGE --pretty=format:"%s" | grep -iE '^fix(\(.+\))?:' || true)
+          DOCS=$(git log $RANGE --pretty=format:"%s" | grep -iE '^docs(\(.+\))?:' || true)
+          REFACTOR=$(git log $RANGE --pretty=format:"%s" | grep -iE '^refactor(\(.+\))?:' || true)
+          CHORE=$(git log $RANGE --pretty=format:"%s" | grep -iE '^chore(\(.+\))?:' || true)
+          BREAKING=$(git log $RANGE --pretty=format:"%s" | grep -E '!' || true)
+
+          VERSION="${GITHUB_REF_NAME#v}"
+          DATE=$(date +%Y-%m-%d)
+
+          NOTES="## [$VERSION] - $DATE\n"
+
+          if [ -n "$BREAKING" ]; then
+            NOTES="$NOTES\n### Breaking Changes\n$(echo "$BREAKING" | sed 's/^/- /')\n"
+          fi
+
+          if [ -n "$FEATURES" ]; then
+            NOTES="$NOTES\n### Features\n$(echo "$FEATURES" | sed 's/^/- /')\n"
+          fi
+
+          if [ -n "$FIXES" ]; then
+            NOTES="$NOTES\n### Fixes\n$(echo "$FIXES" | sed 's/^/- /')\n"
+          fi
+
+          if [ -n "$DOCS" ]; then
+            NOTES="$NOTES\n### Documentation\n$(echo "$DOCS" | sed 's/^/- /')\n"
+          fi
+
+          if [ -n "$REFACTOR" ]; then
+            NOTES="$NOTES\n### Refactoring\n$(echo "$REFACTOR" | sed 's/^/- /')\n"
+          fi
+
+          if [ -n "$CHORE" ]; then
+            NOTES="$NOTES\n### Maintenance\n$(echo "$CHORE" | sed 's/^/- /')\n"
+          fi
+
+          echo -e "$NOTES" > RELEASE_NOTES.md
+
+          echo "notes<<EOF" >> $GITHUB_OUTPUT
+          cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# Changelog\n" > CHANGELOG.md
+          fi
+
+          cat RELEASE_NOTES.md CHANGELOG.md > CHANGELOG.tmp
+          mv CHANGELOG.tmp CHANGELOG.md
+
+      - name: Commit CHANGELOG.md
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add CHANGELOG.md
+
+          if git diff --cached --quiet; then
+            echo "No changelog changes to commit"
+            exit 0
+          fi
+
+          git commit -m "chore: update changelog for ${GITHUB_REF_NAME}"
+          git push
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ steps.changelog.outputs.notes }}
