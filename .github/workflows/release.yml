@@ -21,16 +21,17 @@ jobs:
       - name: Validate manifest.json version
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MANIFEST_PATH="custom_components/maxxisun_test/manifest.json"
 
-          if [ ! -f manifest.json ]; then
-            echo "manifest.json not found"
+          if [ ! -f "$MANIFEST_PATH" ]; then
+            echo "$MANIFEST_PATH not found"
             exit 1
           fi
 
-          MANIFEST_VERSION=$(jq -r '.version' manifest.json)
+          MANIFEST_VERSION=$(jq -r '.version' $MANIFEST_PATH)
 
           if [ "$MANIFEST_VERSION" = "null" ] || [ -z "$MANIFEST_VERSION" ]; then
-            echo "Version field missing in manifest.json"
+            echo "Version field missing in $MANIFEST_PATH"
             exit 1
           fi
 
