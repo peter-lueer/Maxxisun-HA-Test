@@ -97,29 +97,29 @@ jobs:
           cat RELEASE_NOTES.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Update CHANGELOG.md
-        run: |
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# Changelog\n" > CHANGELOG.md
-          fi
+      # - name: Update CHANGELOG.md
+      #   run: |
+      #     if [ ! -f CHANGELOG.md ]; then
+      #       echo "# Changelog\n" > CHANGELOG.md
+      #     fi
 
-          cat RELEASE_NOTES.md CHANGELOG.md > CHANGELOG.tmp
-          mv CHANGELOG.tmp CHANGELOG.md
+      #     cat RELEASE_NOTES.md CHANGELOG.md > CHANGELOG.tmp
+      #     mv CHANGELOG.tmp CHANGELOG.md
 
-      - name: Commit CHANGELOG.md
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+      # - name: Commit CHANGELOG.md
+      #   run: |
+      #     git config user.name "github-actions"
+      #     git config user.email "github-actions@github.com"
 
-          git add CHANGELOG.md
+      #     git add CHANGELOG.md
 
-          if git diff --cached --quiet; then
-            echo "No changelog changes to commit"
-            exit 0
-          fi
+      #     if git diff --cached --quiet; then
+      #       echo "No changelog changes to commit"
+      #       exit 0
+      #     fi
 
-          git commit -m "chore: update changelog for ${GITHUB_REF_NAME}"
-          git push
+      #     git commit -m "chore: update changelog for ${GITHUB_REF_NAME}"
+      #     git push
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
