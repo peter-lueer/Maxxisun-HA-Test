@@ -54,7 +54,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
                 i - 1,
                 "version",
                 device_id,
-                icon=None,
+                icon="mdi:information-outline",
             )
         )
 
@@ -178,6 +178,23 @@ class DeviceValueSensor(BaseDeviceSensor):
             except (ValueError, TypeError):
                 value = None
         return value
+
+    @property
+    def icon(self):
+        if self._key != "SOC":
+            return self._attr_icon
+        data = self.coordinator.data or {}
+        try:
+            soc = float(data.get("SOC", 0) or 0)
+        except (ValueError, TypeError):
+            soc = 0.0
+            return "mdi:battery-remove"
+        d = round(soc / 10) * 10
+        if d == 0:
+            return "mdi:battery-outline"
+        elif d == 100:
+            return "mdi:battery"
+        return "mdi:battery-" + str(d)
 
     @property
     def extra_state_attributes(self):
