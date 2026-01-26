@@ -25,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     session = async_get_clientsession(hass)
     api_interval = int(data.get("API_POLL_INTERVAL"))
 
-    _LOGGER.debug("Coordinator wird initialisiert mit Intervall %s Sekunden", api_interval)
+    _LOGGER.info("Coordinator init with Interval %s seconds", api_interval)
 
     coordinator = DeviceCoordinator(
         hass=hass,
@@ -41,6 +41,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 
     # einfache Werte
     for key, (name, unit, icon, force_int) in SENSOR_MAP.items():
+        _LOGGER.debug("Create ValueSensor %s", key)
         entities.append(DeviceValueSensor(coordinator, key, name, unit, device_id, icon, force_int))
 
     # converter array
@@ -72,11 +73,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             )
         )
 
+    # calced Sensors
+    _LOGGER.debug("Create CalcedValueSensor BatteryCharging")
+    entity_BatteryCharging = DeviceCalcedValueSensor(coordinator, "BatteryCharging", "Battery Charging", None, device_id, "mdi:battery-outline", False)
+    entities.append(entity_BatteryCharging)
+
+    _LOGGER.debug("Create CalcedValueSensor PowerBattery")
+    entity_PowerBattery = DeviceCalcedValueSensor(coordinator, "PowerBattery", "Power Battery", "W", device_id, "mdi:battery-outline", True)
+    entities.append(entity_PowerBattery)
+
     async_add_entities(entities, True)
 
     # Eigenes Intervall erzwingen
     poll_interval = timedelta(seconds=api_interval)
     async def force_refresh(_):
+        _LOGGER.debug("Foreced refresh triggered")
         await coordinator.async_request_refresh()
 
     async_track_time_interval(hass, force_refresh, poll_interval)
@@ -89,7 +100,7 @@ class DeviceCoordinator(DataUpdateCoordinator):
         self._session = session
         self._token = token
 
-        _LOGGER.debug("DataUpdateCoordinator initialisiert: api_poll_interval=%s", api_poll_interval)
+        _LOGGER.debug("DataUpdateCoordinator initialized: api_poll_interval=%s", api_poll_interval)
 
         super().__init__(
             hass,
@@ -100,6 +111,7 @@ class DeviceCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Ruft periodisch Daten von der REST-API ab."""
+        _LOGGER.debug("Requesting data from Maxxisun API")
         headers = {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:128.0) Gecko/20100101 Firefox/128.0',
             'Accept': 'application/json, text/plain, */*',
@@ -142,6 +154,7 @@ class BaseDeviceSensor(SensorEntity):
 
     async def async_update(self):
         """Erzwingt manuelles Update (nur bei Serviceaufruf nötig)."""
+        _LOGGER.debug("Update triggered")
         await self.coordinator.async_request_refresh()
 
 
@@ -174,6 +187,57 @@ class DeviceValueSensor(BaseDeviceSensor):
             return {"last_update": datetime.fromtimestamp(ts / 1000).isoformat()}
         return {}
 
+class DeviceCalcedValueSensor(BaseDeviceSensor):
+    """Sensor für einfache Werte."""
+
+    def __init__(self, coordinator, key, name, unit, device_id, icon=None, force_int=True, ):
+        super().__init__(coordinator, name, key, device_id, unit, icon)
+        self._key = key
+        self._force_int = force_int
+
+    @property
+    def native_value(self):
+        data = self.coordinator.data or {}
+        try:
+            pv = float(data.get("PV_power_total", 0) or 0)
+            pccu = float(data.get("Pccu", 0) or 0)
+        except (ValueError, TypeError):
+            pv, pccu = 0.0, 0.0
+        diff = pv - pccu
+
+        if self._key == "BatteryCharging":
+            d = round(diff)
+            if d == 0:
+                return "Idle"
+            return "Charging" if d > 0 else "Discharging"
+
+        # Default: PowerBattery -> round to zero decimals
+        val = round(diff)
+        return int(val) if self._force_int else val
+
+    @property
+    def icon(self):
+        if self._key != "BatteryCharging" and self._key != "PowerBattery":
+            return self._attr_icon
+        data = self.coordinator.data or {}
+        try:
+            pv = float(data.get("PV_power_total", 0) or 0)
+            pccu = float(data.get("Pccu", 0) or 0)
+        except (ValueError, TypeError):
+            pv, pccu = 0.0, 0.0
+        d = round(pv - pccu)
+        if d == 0:
+            return "mdi:battery-outline"
+        return "mdi:battery-arrow-up-outline" if d > 0 else "mdi:battery-arrow-down-outline"
+
+    @property
+    def extra_state_attributes(self):
+        data = self.coordinator.data or {}
+        ts = data.get("date")
+        if ts:
+            return {"last_update": datetime.fromtimestamp(ts / 1000).isoformat()}
+        return {}
+
 
 class DeviceArraySensor(BaseDeviceSensor):
     """Sensor für Werte in Arrays (Converter / Battery)."""
@@ -193,6 +257,22 @@ class DeviceArraySensor(BaseDeviceSensor):
         if len(array) > self._index:
             return array[self._index].get(self._value_key)
         return None
+
+    @property
+    def icon(self):
+        if self._value_key != "batteryCapacity":
+            return self._attr_icon
+        data = self.coordinator.data or {}
+        try:
+            soc = float(data.get("SOC", 0) or 0)
+        except (ValueError, TypeError):
+            soc = 0.0
+        d = round(soc / 10) * 10
+        if d == 0:
+            return "mdi:battery-outline"
+        elif d == 100:
+            return "mdi:battery"
+        return "mdi:battery-" + str(d)
 
     @property
     def extra_state_attributes(self):
