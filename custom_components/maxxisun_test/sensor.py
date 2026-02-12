@@ -48,21 +48,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities = []
 
     # einfache Werte
-    for key, (name, unit, icon, force_int, stateClass, deviceClass) in SENSOR_MAP.items():
+    for key, (translation_key, unit, icon, force_int, stateClass, deviceClass) in SENSOR_MAP.items():
         _LOGGER.debug("Create ValueSensor %s", key)
-        entities.append(DeviceValueSensor(coordinator, key, name, unit, device_id, icon, force_int, stateClass, deviceClass))
+        entities.append(DeviceValueSensor(coordinator, key, translation_key, unit, device_id, icon, force_int, stateClass, deviceClass))
 
     # converter array
     for i, _ in enumerate(coordinator.data.get("convertersInfo", []) if coordinator.data else [], start=1):
         entities.append(
             DeviceArraySensor(
                 coordinator,
-                f"Converter {i} Version",
+                "converter_version",
                 "convertersInfo",
                 i - 1,
                 "version",
                 device_id,
                 icon="mdi:information-outline",
+                translation_placeholders={"index": str(i)},
             )
         )
 
@@ -71,13 +72,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         entities.append(
             DeviceArraySensor(
                 coordinator,
-                f"Battery {i} Capacity",
+                "battery_capacity",
                 "batteriesInfo",
                 i - 1,
                 "batteryCapacity",
                 device_id,
                 unit="Wh",
                 icon="mdi:battery",
+                translation_placeholders={"index": str(i)},
             )
         )
 
@@ -86,7 +88,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entity_BatteryCharging = DeviceCalcedValueSensor(
         coordinator,
         "BatteryCharging",
-        "Battery Charging",
+        "battery_charging",
         None,
         device_id,
         "mdi:battery-outline",
@@ -98,7 +100,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entity_PowerBattery = DeviceCalcedValueSensor(
         coordinator,
         "PowerBattery",
-        "Power Battery",
+        "power_battery",
         "W",
         device_id,
         "mdi:battery-outline",
@@ -112,7 +114,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entity_BatteryCapacity = DeviceCalcedValueSensor(
         coordinator,
         "BatteryCapacity",
-        "Battery Capacity",
+        "battery_capacity_total",
         "Wh",
         device_id,
         "mdi:battery-outline",
@@ -121,12 +123,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     entities.append(entity_BatteryCapacity)
 
     # diagnostic config sensors
-    for field, (name, unit, icon, _is_writable) in CONTROL_DIAGNOSTIC_MAP.items():
+    for field, (translation_key, unit, icon, _is_writable) in CONTROL_DIAGNOSTIC_MAP.items():
         _LOGGER.debug("Create DiagnosticSensor %s", field)
         entities.append(
             DeviceConfigDiagnosticSensor(
                 coordinator,
-                name,
+                translation_key,
                 field,
                 device_id,
                 unit=unit,
@@ -151,18 +153,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class BaseDeviceSensor(SensorEntity):
     """Basisklasse mit Device-Zuordnung."""
 
-    def __init__(self, coordinator, name, unique_id, device_id, unit=None, icon=None, stateClass=None, deviceClass=None):
+    def __init__(
+        self,
+        coordinator,
+        translation_key,
+        unique_id,
+        device_id,
+        unit=None,
+        icon=None,
+        stateClass=None,
+        deviceClass=None,
+        name=None,
+        translation_placeholders=None,
+    ):
         self.coordinator = coordinator
-        self._attr_name = name
+        if name is not None:
+            self._attr_name = name
+        if translation_key is not None:
+            self._attr_translation_key = translation_key
+        if translation_placeholders is not None:
+            self._attr_translation_placeholders = translation_placeholders
         self._attr_unique_id = f"{device_id}_test_{unique_id}"
         self._attr_has_entity_name = True
         self._attr_suggested_object_id = f"{device_id}_{unique_id}".lower()
         self._attr_native_unit_of_measurement = unit
         self._attr_icon = icon
         self._device_id = device_id
-        if deviceClass != None:
+        if deviceClass is not None:
             self._attr_device_class = deviceClass
-        if stateClass != None:
+        if stateClass is not None:
             self._attr_state_class = stateClass
         self._state = None
 
@@ -184,8 +203,19 @@ class BaseDeviceSensor(SensorEntity):
 class DeviceValueSensor(BaseDeviceSensor):
     """Sensor für einfache Werte."""
 
-    def __init__(self, coordinator, key, name, unit, device_id, icon=None, force_int=False, stateClass=None, deviceClass=None):
-        super().__init__(coordinator, name, key, device_id, unit, icon, stateClass, deviceClass)
+    def __init__(
+        self,
+        coordinator,
+        key,
+        translation_key,
+        unit,
+        device_id,
+        icon=None,
+        force_int=False,
+        stateClass=None,
+        deviceClass=None,
+    ):
+        super().__init__(coordinator, translation_key, key, device_id, unit, icon, stateClass, deviceClass)
         self._key = key
         self._force_int = force_int
 
@@ -235,7 +265,7 @@ class DeviceCalcedValueSensor(BaseDeviceSensor):
         self,
         coordinator,
         key,
-        name,
+        translation_key,
         unit,
         device_id,
         icon=None,
@@ -243,7 +273,7 @@ class DeviceCalcedValueSensor(BaseDeviceSensor):
         stateClass=None,
         deviceClass=None
     ):
-        super().__init__(coordinator, name, key, device_id, unit, icon, stateClass, deviceClass)
+        super().__init__(coordinator, translation_key, key, device_id, unit, icon, stateClass, deviceClass)
         self._key = key
         self._force_int = force_int
 
@@ -321,15 +351,24 @@ class DeviceArraySensor(BaseDeviceSensor):
     def __init__(
         self,
         coordinator,
-        name,
+        translation_key,
         array_key,
         index,
         value_key,
         device_id,
         unit=None,
         icon=None,
+        translation_placeholders=None,
     ):
-        super().__init__(coordinator, name, f"{array_key}_{index}_{value_key}", device_id, unit, icon)
+        super().__init__(
+            coordinator,
+            translation_key,
+            f"{array_key}_{index}_{value_key}",
+            device_id,
+            unit,
+            icon,
+            translation_placeholders=translation_placeholders,
+        )
         self._array_key = array_key
         self._index = index
         self._value_key = value_key
@@ -375,14 +414,14 @@ class DeviceConfigDiagnosticSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: APICoordinator,
-        name: str,
+        translation_key: str,
         field: str,
         device_id: str,
         unit=None,
         icon=None,
     ):
         super().__init__(coordinator)
-        self._attr_name = name
+        self._attr_translation_key = translation_key
         self._field = field
         self._device_id = device_id
         self._attr_unique_id = f"{device_id}_test_{field}"

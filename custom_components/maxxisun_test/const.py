@@ -13,27 +13,58 @@ LANG_DE: Final = "de"
 
 
 SENSOR_MAP = {
-    "SOC": ("State of Charge", "%", "mdi:battery", False, None, None),
-    "wifiStrength": ("WiFi Signal", "dBm", "mdi:wifi", False, None, None),
-    "Pccu": ("Power Out", "W", "mdi:power-plug-battery-outline", True, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
-    "Pr": ("Power from Grid", "W", "mdi:transmission-tower-export", True, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
-    "PV_power_total": ("PV Power Total", "W", "mdi:solar-power-variant", False, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
-    "firmwareVersion": ("Firmware Version", None, "mdi:information-outline", False, None, None),
+    "SOC": ("state_of_charge", "%", "mdi:battery", False, None, None),
+    "wifiStrength": ("wifi_strength", "dBm", "mdi:wifi", False, None, None),
+    "Pccu": ("power_out", "W", "mdi:power-plug-battery-outline", True, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
+    "Pr": ("power_from_grid", "W", "mdi:transmission-tower-export", True, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
+    "PV_power_total": ("pv_power_total", "W", "mdi:solar-power-variant", False, SensorStateClass.MEASUREMENT, SensorDeviceClass.POWER),
+    "firmwareVersion": ("firmware_version", None, "mdi:information-outline", False, None, None),
 }
 CONTROL_NUMBER_MAP = {
-    "numberOfBatteries": ("Batterien im System (Anzahl)", None, "mdi:battery-plus-outline", True),
-    "minSOC": ("Minimale Entladung der Batterie", "%", "mdi:percent", True),
-    "maxSOC": ("Maximale Batterieladung", "%", "mdi:percent", True),
-    "maxOutputPower": ("Mikro-Wechselrichter maximale Leistung", "W", "mdi:power-plug-outline", True),
-    "baseLoad": ("Ausgabe korrigieren", "W", None, True),
-    "threshold": ("Reaktionstoleranz", "W", None, True),
-    "offlineOutput": ("Offline-Ausgangsleistung", "W", "mdi:power-plug-outline", True),
+    "numberOfBatteries": ("number_of_batteries", None, "mdi:battery-plus-outline", True),
+    "minSOC": ("min_soc", "%", "mdi:percent", True),
+    "maxSOC": ("max_soc", "%", "mdi:percent", True),
+    "maxOutputPower": ("max_output_power", "W", "mdi:power-plug-outline", True),
+    "baseLoad": ("base_load", "W", None, True),
+    "threshold": ("threshold", "W", None, True),
+    "offlineOutput": ("offline_output", "W", "mdi:power-plug-outline", True),
 }
 CONTROL_SELECT_MAP = {
-    "powerMeter": ("Messgerät Typ", None, "mdi:gauge", True, [{"Key": "None", "Value": 99},{"Key": "PowerOpti", "Value": 1},{"Key": "EcoTracker", "Value": 4},{"Key": "Shelly 3EM", "Value": 9},{"Key": "Shelly 3EM Pro", "Value": 9}]),
-    "ccuSpeed": ("CCU-Geschwindigkeit", None, "mdi:speedometer", True, [{"Key": "Langsam", "Value": 1},{"Key": "Normal", "Value": 2},{"Key": "Schnell", "Value": 3}]),
-    "dcAlgorithm": ("DC/DC Algorithmus", None, "mdi:chip", True, [{"Key": "Basic", "Value": 1},{"Key": "Forced", "Value": 2}]),
+    "powerMeter": (
+        "power_meter",
+        None,
+        "mdi:gauge",
+        True,
+        [
+            {"Key": "none", "Value": 99},
+            {"Key": "poweropti", "Value": 1},
+            {"Key": "ecotracker", "Value": 4},
+            {"Key": "shelly_3em", "Value": 9},
+            {"Key": "shelly_3em_pro", "Value": 9},
+        ],
+    ),
+    "ccuSpeed": (
+        "ccu_speed",
+        None,
+        "mdi:speedometer",
+        True,
+        [
+            {"Key": "slow", "Value": 1},
+            {"Key": "normal", "Value": 2},
+            {"Key": "fast", "Value": 3},
+        ],
+    ),
+    "dcAlgorithm": (
+        "dc_algorithm",
+        None,
+        "mdi:chip",
+        True,
+        [
+            {"Key": "basic", "Value": 1},
+            {"Key": "forced", "Value": 2},
+        ],
+    ),
 }
 CONTROL_DIAGNOSTIC_MAP = {
-    "meterIp": ("Messgerät ip", None, "mdi:ip-network-outline", False ),
+    "meterIp": ("meter_ip", None, "mdi:ip-network-outline", False),
 }

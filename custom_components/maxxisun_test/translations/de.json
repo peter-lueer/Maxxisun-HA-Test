@@ -1,0 +1,68 @@
+{
+  "title": "Maxxisun Test",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "email": "E-Mail",
+          "ccu": "CCU",
+          "API_POLL_INTERVAL": "Intervall (s)",
+          "ignoreSSL": "SSL ignorieren"
+        },
+        "description": "CCU eingeben"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state_of_charge": { "name": "Ladezustand" },
+      "wifi_strength": { "name": "WLAN-Signal" },
+      "power_out": { "name": "Leistung Ausgang" },
+      "power_from_grid": { "name": "Leistung vom Netz" },
+      "pv_power_total": { "name": "PV-Gesamtleistung" },
+      "firmware_version": { "name": "Firmware-Version" },
+      "converter_version": { "name": "Wechselrichter {index} Version" },
+      "battery_capacity": { "name": "Batterie {index} Kapazität" },
+      "battery_charging": { "name": "Batterie laden" },
+      "power_battery": { "name": "Batterieleistung" },
+      "battery_capacity_total": { "name": "Batteriekapazität" },
+      "meter_ip": { "name": "Messgerät IP" }
+    },
+    "number": {
+      "number_of_batteries": { "name": "Batterien im System (Anzahl)" },
+      "min_soc": { "name": "Minimale Entladung" },
+      "max_soc": { "name": "Maximale Ladung" },
+      "max_output_power": { "name": "Mikro-Wechselrichter maximale Leistung" },
+      "base_load": { "name": "Ausgabe korrigieren" },
+      "threshold": { "name": "Reaktionstoleranz" },
+      "offline_output": { "name": "Offline-Ausgangsleistung" }
+    },
+    "select": {
+      "power_meter": {
+        "name": "Messgerättyp",
+        "options": {
+          "none": "Keins",
+          "poweropti": "PowerOpti",
+          "ecotracker": "EcoTracker",
+          "shelly_3em": "Shelly 3EM",
+          "shelly_3em_pro": "Shelly 3EM Pro"
+        }
+      },
+      "ccu_speed": {
+        "name": "CCU-Geschwindigkeit",
+        "options": {
+          "slow": "Langsam",
+          "normal": "Normal",
+          "fast": "Schnell"
+        }
+      },
+      "dc_algorithm": {
+        "name": "DC/DC-Algorithmus",
+        "options": {
+          "basic": "Basic",
+          "forced": "Forced"
+        }
+      }
+    }
+  }
+}

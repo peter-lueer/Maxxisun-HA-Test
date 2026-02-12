@@ -1,0 +1,68 @@
+{
+  "title": "Maxxisun Test",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "email": "Email",
+          "ccu": "CCU",
+          "API_POLL_INTERVAL": "Polling interval (s)",
+          "ignoreSSL": "Ignore SSL"
+        },
+        "description": "Enter your CCU"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "state_of_charge": { "name": "State of Charge" },
+      "wifi_strength": { "name": "Wi-Fi Signal" },
+      "power_out": { "name": "Power Out" },
+      "power_from_grid": { "name": "Power From Grid" },
+      "pv_power_total": { "name": "PV Power Total" },
+      "firmware_version": { "name": "Firmware Version" },
+      "converter_version": { "name": "Converter {index} Version" },
+      "battery_capacity": { "name": "Battery {index} Capacity" },
+      "battery_charging": { "name": "Battery Charging" },
+      "power_battery": { "name": "Power Battery" },
+      "battery_capacity_total": { "name": "Battery Capacity" },
+      "meter_ip": { "name": "Meter IP" }
+    },
+    "number": {
+      "number_of_batteries": { "name": "Number of batteries" },
+      "min_soc": { "name": "Minimum SoC" },
+      "max_soc": { "name": "Maximum SoC" },
+      "max_output_power": { "name": "Micro-inverter max power" },
+      "base_load": { "name": "Base load offset" },
+      "threshold": { "name": "Reaction tolerance" },
+      "offline_output": { "name": "Offline output power" }
+    },
+    "select": {
+      "power_meter": {
+        "name": "Power meter type",
+        "options": {
+          "none": "None",
+          "poweropti": "PowerOpti",
+          "ecotracker": "EcoTracker",
+          "shelly_3em": "Shelly 3EM",
+          "shelly_3em_pro": "Shelly 3EM Pro"
+        }
+      },
+      "ccu_speed": {
+        "name": "CCU speed",
+        "options": {
+          "slow": "Slow",
+          "normal": "Normal",
+          "fast": "Fast"
+        }
+      },
+      "dc_algorithm": {
+        "name": "DC/DC algorithm",
+        "options": {
+          "basic": "Basic",
+          "forced": "Forced"
+        }
+      }
+    }
+  }
+}

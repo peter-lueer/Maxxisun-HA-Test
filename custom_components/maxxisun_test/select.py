@@ -41,11 +41,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     device_id = coordinator.data.get("deviceId", "unknown") if coordinator.data else "unknown"
 
     entities: list[SelectEntity] = []
-    for field, (name, _unit, icon, is_writable, options) in CONTROL_SELECT_MAP.items():
+    for field, (translation_key, _unit, icon, is_writable, options) in CONTROL_SELECT_MAP.items():
         entities.append(
             DeviceConfigSelect(
                 coordinator=coordinator,
-                name=name,
+                translation_key=translation_key,
                 field=field,
                 device_id=device_id,
                 icon=icon,
@@ -63,7 +63,7 @@ class DeviceConfigSelect(CoordinatorEntity, SelectEntity):
     def __init__(
         self,
         coordinator: APICoordinator,
-        name: str,
+        translation_key: str,
         field: str,
         device_id: str,
         icon: Optional[str],
@@ -71,7 +71,7 @@ class DeviceConfigSelect(CoordinatorEntity, SelectEntity):
         options: list[dict],
     ):
         super().__init__(coordinator)
-        self._attr_name = name
+        self._attr_translation_key = translation_key
         self._attr_unique_id = f"{device_id}_test_{field}"
         self._attr_suggested_object_id = f"{device_id}_{field}".lower()
         self._attr_has_entity_name = True

@@ -45,12 +45,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     device_id = coordinator.data.get("deviceId", "unknown") if coordinator.data else "unknown"
     entities = []
 
-    for field, (name, unit, icon, is_writable) in CONTROL_NUMBER_MAP.items():
+    for field, (translation_key, unit, icon, is_writable) in CONTROL_NUMBER_MAP.items():
         _LOGGER.debug("Create ControlNumber %s", field)
         entities.append(
             DeviceConfigNumber(
                 coordinator,
-                name,
+                translation_key,
                 field,
                 device_id,
                 unit=unit,
@@ -68,7 +68,7 @@ class DeviceConfigNumber(CoordinatorEntity, NumberEntity):
     def __init__(
         self,
         coordinator: APICoordinator,
-        name: str,
+        translation_key: str,
         field: str,
         device_id: str,
         unit: Optional[str] = None,
@@ -76,7 +76,7 @@ class DeviceConfigNumber(CoordinatorEntity, NumberEntity):
         read_only: bool = False,
     ):
         super().__init__(coordinator)
-        self._attr_name = name
+        self._attr_translation_key = translation_key
         self._field = field
         self._device_id = device_id
         self._attr_has_entity_name = True
