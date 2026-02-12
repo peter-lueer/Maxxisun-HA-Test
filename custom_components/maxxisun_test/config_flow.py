@@ -31,7 +31,7 @@ class RestConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
 
             try:
-                ssL = False if user_input["ignoreSSL"](bool) else None
+                ssL = False if user_input["ignoreSSL"] else None
                 async with session.post(
                     login_url,
                     data='{"email":"' + user_input["email"] + '","ccu":"' + user_input["ccu"] + '"}',

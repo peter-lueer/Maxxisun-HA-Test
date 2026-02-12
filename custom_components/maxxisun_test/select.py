@@ -28,6 +28,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
             session=session,
             token=data["token"],
             api_poll_interval=api_interval,
+            ignoreSSL=data["ignoreSSL"],
         )
         hass.data[DOMAIN][entry.entry_id]["coordinator"] = coordinator
 

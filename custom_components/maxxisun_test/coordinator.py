@@ -13,14 +13,14 @@ _LOGGER = logging.getLogger(__name__)
 class APICoordinator(DataUpdateCoordinator):
     """Koordiniert API-Zugriffe: Device-Daten und Config-GET/PUT."""
 
-    def __init__(self, hass, session, token, api_poll_interval: int, ignore_ssl: bool = False):
+    def __init__(self, hass, session, token, api_poll_interval: int, ignoreSSL: bool = False):
         self._session = session
         self._token = token
         self.config = None
         self._device_id = None
-        # When ignore_ssl=True, disable certificate verification for aiohttp requests
+        # When ignoreSSL=True, disable certificate verification for aiohttp requests
         # by passing ssl=False to calls. Otherwise, leave default verification behavior.
-        self._ssl = False if ignore_ssl else None
+        self._ssl = False if ignoreSSL else None
 
         _LOGGER.debug("API Coordinator initialized: api_poll_interval=%s", api_poll_interval)
 
