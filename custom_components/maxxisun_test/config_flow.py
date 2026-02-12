@@ -66,7 +66,7 @@ class RestConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "ccu": user_input["ccu"],
                     "API_POLL_INTERVAL": user_input["API_POLL_INTERVAL"],
                     "token": token,
-                    "ssl": ssL,
+                    "ignoreSSL": user_input["ignoreSSL"],
                 },
             )
 
