@@ -6,7 +6,8 @@
         "data": {
           "email": "E-Mail",
           "ccu": "CCU",
-          "API_POLL_INTERVAL": "Interval"
+          "API_POLL_INTERVAL": "Interval",
+          "ignoreSSL": "Ignore SSL"
         },
         "description": "Select your CCU"
       }
